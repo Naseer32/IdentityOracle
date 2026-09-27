@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Identity Verification Oracle</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>🛡️ Identity Verification Oracle</h1>
+      <p class="subtitle">
+        Verify a claimed identity/affiliation against evidence sources
+        before trusting a contact — powered by GenLayer AI-validator
+        consensus.
+      </p>
+      <button id="connect-btn">Connect Wallet</button>
+      <p id="wallet-status" class="muted"></p>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2>New verification</h2>
+        <form id="verify-form">
+          <label>
+            Claimed name
+            <input id="claimed_name" type="text" placeholder="Jane Doe" required />
+          </label>
+          <label>
+            Claimed affiliation / role
+            <input id="claimed_affiliation" type="text" placeholder="Journalist at ExampleNews" required />
+          </label>
+          <label>
+            Claimed contact channel
+            <input id="contact_channel" type="text" placeholder="twitter:@janedoe" />
+          </label>
+          <label>
+            Evidence URL(s) — 1 to 3, comma-separated
+            <textarea id="evidence_urls" rows="3" placeholder="https://examplenews.com/staff/jane-doe, https://linkedin.com/in/janedoe" required></textarea>
+          </label>
+          <button type="submit" id="submit-btn">Verify identity</button>
+        </form>
+        <div id="submit-status" class="muted"></div>
+      </section>
+
+      <section class="card">
+        <h2>Result</h2>
+        <div id="result-panel">
+          <p class="muted">Submit a verification above to see the result here.</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>My past verifications</h2>
+        <button id="refresh-history-btn">Refresh</button>
+        <div id="history-panel">
+          <p class="muted">Connect your wallet to see your verification history.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
