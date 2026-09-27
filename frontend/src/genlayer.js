@@ -71,7 +71,9 @@ export async function verifyIdentity({ claimedName, claimedAffiliation, contactC
 
   const receipt = await client.waitForTransactionReceipt({
     hash: txHash,
-    status: "FINALIZED",
+    status: "ACCEPTED",
+    retries: 60,
+    interval: 3000,
   });
 
   return { txHash, receipt };
