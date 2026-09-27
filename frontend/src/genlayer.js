@@ -1,4 +1,5 @@
-import { createClient, studionet } from "genlayer-js";
+import { createClient } from "genlayer-js";
+import { studionet } from "genlayer-js/chains";
 
 // Update this after each redeploy.
 export const CONTRACT_ADDRESS = "0x2ac254Ae9b6Fc9F7A1B120f3574D0DE6F0e7BcfF";
