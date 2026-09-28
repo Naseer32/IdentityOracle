@@ -1,4 +1,4 @@
-# IdentityVerificationOracle
+# IdentityOracle
 
 An anti-impersonation / social-engineering-defense intelligent contract for
 GenLayer. It verifies a claimed identity (name + role/affiliation at an
