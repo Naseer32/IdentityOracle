@@ -15,6 +15,25 @@ const resultPanel = document.getElementById("result-panel");
 const historyPanel = document.getElementById("history-panel");
 const refreshHistoryBtn = document.getElementById("refresh-history-btn");
 
+function renderVerification(v) {
+  const badge = v.verdict ? "✅ CONFIRMED" : "❌ NOT CONFIRMED";
+  const confClass = `conf-${v.confidence}`;
+  return `
+    <div class="verification-card">
+      <div class="verification-header">
+        <span class="badge ${v.verdict ? "badge-true" : "badge-false"}">${badge}</span>
+        <span class="confidence ${confClass}">confidence: ${v.confidence}</span>
+      </div>
+      <p><strong>${escapeHtml(v.claimed_name)}</strong> — ${escapeHtml(v.claimed_affiliation)}</p>
+      <p class="muted">Contact: ${escapeHtml(v.contact_channel || "—")}</p>
+      <p class="muted">Sources confirmed: ${v.confirmed_count} / ${v.total_sources}</p>
+      <p class="muted">Evidence: ${escapeHtml(v.evidence_urls)}</p>
+      <p class="reasoning">${escapeHtml(v.reasoning)}</p>
+      <p class="muted small">id #${v.id} · requester ${shortAddr(v.requester)}</p>
+    </div>
+  `;
+}
+
 function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str ?? "";
@@ -24,26 +43,6 @@ function escapeHtml(str) {
 function shortAddr(addr) {
   if (!addr) return "";
   return addr.slice(0, 6) + "…" + addr.slice(-4);
-}
-
-function renderVerification(v) {
-  const badge = v.verdict ? "✅ CONFIRMED" : "❌ NOT CONFIRMED";
-  const confClass = `conf-${v.confidence}`;
-  return `
-    <div class="verification-card">
-      <div class="verification-header">
-        <span class="badge ${v.verdict ? "badge-true" : "badge-false"}">${badge}</span>
-        <span class="confidence ${confClass}">confidence: ${escapeHtml(v.confidence)}</span>
-      </div>
-      <p><strong>${escapeHtml(v.claimed_name)}</strong> — ${escapeHtml(v.claimed_affiliation)}</p>
-      ${v.org ? `<p class="muted">Organization: ${escapeHtml(v.org)}</p>` : ""}
-      <p class="muted">Contact: ${escapeHtml(v.contact_channel || "—")}</p>
-      <p class="muted">Sources confirmed: ${v.confirmed_count} / ${v.total_sources}</p>
-      <p class="muted">Evidence: ${escapeHtml(v.evidence_urls)}</p>
-      <p class="reasoning">${escapeHtml(v.reasoning)}</p>
-      <p class="muted small">id #${v.id} · requester ${shortAddr(v.requester)}</p>
-    </div>
-  `;
 }
 
 async function refreshHistory() {
@@ -57,7 +56,11 @@ async function refreshHistory() {
       return;
     }
     const records = await Promise.all(ids.map((id) => getVerification(id)));
-    historyPanel.innerHTML = records.slice().reverse().map(renderVerification).join("");
+    historyPanel.innerHTML = records
+      .slice()
+      .reverse()
+      .map(renderVerification)
+      .join("");
   } catch (err) {
     console.error(err);
     historyPanel.innerHTML = `<p class="error">Failed to load history: ${escapeHtml(err.message)}</p>`;
@@ -94,18 +97,20 @@ form.addEventListener("submit", async (e) => {
   const contactChannel = document.getElementById("contact_channel").value.trim();
   const evidenceUrls = document.getElementById("evidence_urls").value.trim();
 
-  if (!org) {
-    submitStatus.textContent = "Enter the organization.";
-    return;
-  }
-
   submitBtn.disabled = true;
-  submitStatus.textContent = "Submitting — this can take a while as validators fetch and judge the evidence…";
+  submitStatus.textContent = "Submitting — this can take up to ~30s while validators fetch and judge the evidence…";
   resultPanel.innerHTML = `<p class="muted">Waiting for consensus…</p>`;
 
   try {
-    await verifyIdentity({ claimedName, claimedAffiliation, org, contactChannel, evidenceUrls });
+    await verifyIdentity({
+      claimedName,
+      claimedAffiliation,
+      org,
+      contactChannel,
+      evidenceUrls,
+    });
 
+    // The new record is the highest id belonging to this requester.
     const account = getConnectedAccount();
     const ids = await getVerificationsByRequester(account);
     const newest = await getVerification(ids[ids.length - 1]);

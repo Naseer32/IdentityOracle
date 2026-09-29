@@ -74,8 +74,12 @@ function read(functionName, args = []) {
   return client.readContract({ address: CONTRACT_ADDRESS, functionName, args });
 }
 
-export const verifyIdentity = ({ claimedName, claimedAffiliation, org, contactChannel, evidenceUrls }) =>
-  write("verify_identity", [claimedName, claimedAffiliation, org, contactChannel, evidenceUrls]);
+export const verifyIdentity = ({ claimedName, claimedAffiliation, org, contactChannel, evidenceUrls }) => {
+  const args = [claimedName, claimedAffiliation, org, contactChannel, evidenceUrls]
+    .map((v) => String(v ?? "").trim());
+  if (!args[2]) throw new Error("Organization is required");
+  return write("verify_identity", args);
+};
 
 export const recheck = (id, newEvidenceUrls = "") => write("recheck", [id, newEvidenceUrls]);
 export const registerOrg = (org, domains) => write("register_org", [org, domains]);
