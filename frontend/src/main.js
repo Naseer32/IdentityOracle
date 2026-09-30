@@ -1,3 +1,4 @@
+import "./methods.js";
 import {
   connectWallet,
   getConnectedAccount,
