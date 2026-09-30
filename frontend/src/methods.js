@@ -47,24 +47,12 @@ const plain = (v) =>
     2
   );
 
-let account = null;
 const readClient = createClient({ chain });
 
-async function connect() {
-  const [a] = await window.ethereum.request({ method: "eth_requestAccounts" });
-  try {
-    await window.ethereum.request({
-      method: "wallet_addEthereumChain",
-      params: [{
-        chainId: "0x" + chain.id.toString(16),
-        chainName: chain.name,
-        nativeCurrency: chain.nativeCurrency,
-        rpcUrls: chain.rpcUrls.default.http,
-      }],
-    });
-  } catch (e) { console.log(e); }
-  account = a;
-  document.getElementById("m-connect").textContent = a.slice(0, 6) + "..." + a.slice(-4);
+async function getAccount() {
+  const accs = await window.ethereum.request({ method: "eth_accounts" });
+  if (!accs.length) throw new Error("Da farko danna 'Connect Wallet' a saman shafi.");
+  return accs[0];
 }
 
 function parseArgs(m, body) {
@@ -96,7 +84,7 @@ function card(m, isWrite) {
         const r = await readClient.readContract({ address: ADDRESS, functionName: m.name, args });
         out.textContent = plain(r);
       } else {
-        if (!account) await connect();
+        const account = await getAccount();
         const wc = createClient({ chain, account });
         const hash = await wc.writeContract({ address: ADDRESS, functionName: m.name, args, value: 0n });
         out.textContent = "Tx: " + hash + "\nAna jira ACCEPTED...";
@@ -111,9 +99,7 @@ function card(m, isWrite) {
 }
 
 const root = document.getElementById("methods");
-root.innerHTML = `<button id="m-connect">Connect wallet</button>
-  <h3>Read Methods</h3><div id="m-read"></div>
+root.innerHTML = `<h3>Read Methods</h3><div id="m-read"></div>
   <h3>Write Methods</h3><div id="m-write"></div>`;
 READ.forEach((m) => document.getElementById("m-read").append(card(m, false)));
 WRITE.forEach((m) => document.getElementById("m-write").append(card(m, true)));
-document.getElementById("m-connect").onclick = connect;
