@@ -1,0 +1,98 @@
+"use strict";
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.tok = exports.str = exports.fail = exports.succ = exports.nil = void 0;
+var ParserInterface_1 = require("./ParserInterface");
+function nil() {
+    return {
+        parse: function (token) {
+            return {
+                candidates: [{
+                        firstToken: token,
+                        nextToken: token,
+                        result: undefined
+                    }],
+                successful: true,
+                error: undefined
+            };
+        }
+    };
+}
+exports.nil = nil;
+function succ(value) {
+    return {
+        parse: function (token) {
+            return {
+                candidates: [{
+                        firstToken: token,
+                        nextToken: token,
+                        result: value
+                    }],
+                successful: true,
+                error: undefined
+            };
+        }
+    };
+}
+exports.succ = succ;
+function fail(errorMessage) {
+    return {
+        parse: function (token) {
+            return {
+                successful: false,
+                error: {
+                    kind: 'Error',
+                    pos: token === null || token === void 0 ? void 0 : token.pos,
+                    message: errorMessage
+                }
+            };
+        }
+    };
+}
+exports.fail = fail;
+function str(toMatch) {
+    return {
+        parse: function (token) {
+            if (token === undefined || token.text !== toMatch) {
+                return {
+                    successful: false,
+                    error: ParserInterface_1.unableToConsumeToken(token)
+                };
+            }
+            return {
+                candidates: [{
+                        firstToken: token,
+                        nextToken: token.next,
+                        result: token
+                    }],
+                successful: true,
+                error: undefined
+            };
+        }
+    };
+}
+exports.str = str;
+function tok(toMatch) {
+    return {
+        parse: function (token) {
+            if (token === undefined || token.kind !== toMatch) {
+                return {
+                    successful: false,
+                    error: ParserInterface_1.unableToConsumeToken(token)
+                };
+            }
+            return {
+                candidates: [{
+                        firstToken: token,
+                        nextToken: token.next,
+                        result: token
+                    }],
+                successful: true,
+                error: undefined
+            };
+        }
+    };
+}
+exports.tok = tok;
+//# sourceMappingURL=TokenParser.js.map

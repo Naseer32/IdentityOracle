@@ -1,0 +1,38 @@
+"use strict";
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.makeParserModule = exports.lazy = void 0;
+function lazy(thunk) {
+    return {
+        parse: function (token) {
+            return thunk().parse(token);
+        }
+    };
+}
+exports.lazy = lazy;
+var defineReadOnly = function (target, propName, value) {
+    return Object.defineProperty(target, propName, {
+        configurable: true,
+        writable: false,
+        enumerable: true,
+        value: value
+    });
+};
+function makeParserModule(definitions) {
+    var parserModule = Object.create(null);
+    var _loop_1 = function (key, parserThunk) {
+        parserModule = defineReadOnly(parserModule, key, lazy(function () { return parserThunk(parserModule); }));
+    };
+    /*
+     * building a module for the mutually dependent parsers
+     * We use read-only to protect the module from being mutated by any definition.
+     */
+    for (var _i = 0, _a = Object.entries(definitions); _i < _a.length; _i++) {
+        var _b = _a[_i], key = _b[0], parserThunk = _b[1];
+        _loop_1(key, parserThunk);
+    }
+    return parserModule;
+}
+exports.makeParserModule = makeParserModule;
+//# sourceMappingURL=ParserModule.js.map

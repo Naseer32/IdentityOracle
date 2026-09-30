@@ -1,0 +1,177 @@
+"use strict";
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.lrec_sc = exports.lrec = exports.list_n = exports.list_sc = exports.list = exports.rep_n = exports.repr = exports.rep_sc = exports.rep = void 0;
+var ApplyParser_1 = require("./ApplyParser");
+var ParserInterface_1 = require("./ParserInterface");
+var SequencialParser_1 = require("./SequencialParser");
+var TokenParser_1 = require("./TokenParser");
+function rep(p) {
+    var reprParser = repr(p);
+    return {
+        parse: function (token) {
+            var output = reprParser.parse(token);
+            if (output.successful) {
+                return {
+                    candidates: output.candidates.reverse(),
+                    successful: true,
+                    error: output.error
+                };
+            }
+            else {
+                return output;
+            }
+        }
+    };
+}
+exports.rep = rep;
+function rep_sc(p) {
+    return {
+        parse: function (token) {
+            var error;
+            var result = [{ firstToken: token, nextToken: token, result: [] }];
+            while (true) {
+                var steps = result;
+                result = [];
+                for (var _i = 0, steps_1 = steps; _i < steps_1.length; _i++) {
+                    var step = steps_1[_i];
+                    var output = p.parse(step.nextToken);
+                    error = ParserInterface_1.betterError(error, output.error);
+                    if (output.successful) {
+                        for (var _a = 0, _b = output.candidates; _a < _b.length; _a++) {
+                            var candidate = _b[_a];
+                            if (candidate.nextToken !== step.nextToken) {
+                                result.push({
+                                    firstToken: step.firstToken,
+                                    nextToken: candidate.nextToken,
+                                    result: step.result.concat([candidate.result])
+                                });
+                            }
+                        }
+                    }
+                }
+                if (result.length === 0) {
+                    result = steps;
+                    break;
+                }
+            }
+            return ParserInterface_1.resultOrError(result, error, true);
+        }
+    };
+}
+exports.rep_sc = rep_sc;
+function repr(p) {
+    return {
+        parse: function (token) {
+            var error;
+            var result = [{ firstToken: token, nextToken: token, result: [] }];
+            for (var i = 0; i < result.length; i++) {
+                var step = result[i];
+                var output = p.parse(step.nextToken);
+                error = ParserInterface_1.betterError(error, output.error);
+                if (output.successful) {
+                    for (var _i = 0, _a = output.candidates; _i < _a.length; _i++) {
+                        var candidate = _a[_i];
+                        if (candidate.nextToken !== step.nextToken) {
+                            result.push({
+                                firstToken: step.firstToken,
+                                nextToken: candidate.nextToken,
+                                result: step.result.concat([candidate.result])
+                            });
+                        }
+                    }
+                }
+            }
+            return ParserInterface_1.resultOrError(result, error, true);
+        }
+    };
+}
+exports.repr = repr;
+function rep_n(p, count) {
+    return {
+        parse: function (token) {
+            var error;
+            var candidates = [{ firstToken: token, nextToken: token, result: [] }];
+            for (var i = 0; i < count; i++) {
+                var newCandidates = [];
+                for (var _i = 0, candidates_1 = candidates; _i < candidates_1.length; _i++) {
+                    var step = candidates_1[_i];
+                    var output = p.parse(step.nextToken);
+                    error = ParserInterface_1.betterError(error, output.error);
+                    if (output.successful) {
+                        for (var _a = 0, _b = output.candidates; _a < _b.length; _a++) {
+                            var candidate = _b[_a];
+                            newCandidates.push({
+                                firstToken: step.firstToken,
+                                nextToken: candidate.nextToken,
+                                result: step.result.concat([candidate.result])
+                            });
+                        }
+                    }
+                }
+                if (newCandidates.length === 0) {
+                    return {
+                        successful: false,
+                        error: error
+                    };
+                }
+                else {
+                    candidates = newCandidates;
+                }
+            }
+            return ParserInterface_1.resultOrError(candidates, error, true);
+        }
+    };
+}
+exports.rep_n = rep_n;
+function applyList(_a) {
+    var first = _a[0], tail = _a[1];
+    return __spreadArrays([first], tail);
+}
+function list(p, s) {
+    return ApplyParser_1.apply(SequencialParser_1.seq(p, rep(ApplyParser_1.kright(s, p))), applyList);
+}
+exports.list = list;
+function list_sc(p, s) {
+    return ApplyParser_1.apply(SequencialParser_1.seq(p, rep_sc(ApplyParser_1.kright(s, p))), applyList);
+}
+exports.list_sc = list_sc;
+function list_n(p, s, count) {
+    if (count < 1) {
+        return TokenParser_1.succ([]);
+    }
+    else if (count === 1) {
+        return ApplyParser_1.apply(p, function (value) { return [value]; });
+    }
+    else {
+        return ApplyParser_1.apply(SequencialParser_1.seq(p, rep_n(ApplyParser_1.kright(s, p), count - 1)), applyList);
+    }
+}
+exports.list_n = list_n;
+function applyLrec(callback) {
+    return function (value) {
+        var result = value[0];
+        for (var _i = 0, _a = value[1]; _i < _a.length; _i++) {
+            var tail = _a[_i];
+            result = callback(result, tail);
+        }
+        return result;
+    };
+}
+function lrec(p, q, callback) {
+    return ApplyParser_1.apply(SequencialParser_1.seq(p, rep(q)), applyLrec(callback));
+}
+exports.lrec = lrec;
+function lrec_sc(p, q, callback) {
+    return ApplyParser_1.apply(SequencialParser_1.seq(p, rep_sc(q)), applyLrec(callback));
+}
+exports.lrec_sc = lrec_sc;
+//# sourceMappingURL=RepeativeParser.js.map

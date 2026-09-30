@@ -1,0 +1,7 @@
+import type { Parser } from './Parsers/ParserInterface';
+export declare function lazy<TKind, TResult>(thunk: () => Parser<TKind, TResult>): Parser<TKind, TResult>;
+export declare function makeParserModule<TKind, TResult>(definitions: Record<string, (m: {
+    [K in keyof typeof definitions]: Parser<TKind, TResult>;
+}) => Parser<TKind, TResult>>): {
+    [K in keyof typeof definitions]: ReturnType<typeof definitions[K]>;
+};
