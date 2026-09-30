@@ -99,7 +99,18 @@ function card(m, isWrite) {
 }
 
 const root = document.getElementById("methods");
-root.innerHTML = `<h3>Read Methods</h3><div id="m-read"></div>
-  <h3>Write Methods</h3><div id="m-write"></div>`;
+root.innerHTML = `
+  <div class="m-sec"><button class="m-sechead"><span>Read Methods</span><span class="arr">▾</span></button><div class="m-secbody" id="m-read"></div></div>
+  <div class="m-sec"><button class="m-sechead"><span>Write Methods</span><span class="arr">▾</span></button><div class="m-secbody" id="m-write"></div></div>`;
 READ.forEach((m) => document.getElementById("m-read").append(card(m, false)));
 WRITE.forEach((m) => document.getElementById("m-write").append(card(m, true)));
+
+// secToggle
+document.head.insertAdjacentHTML("beforeend", `<style>
+.m-sec{border:1px solid #8884;border-radius:10px;margin-bottom:10px;overflow:hidden}
+.m-sechead{width:100%;text-align:left;padding:16px;font-size:16px;font-weight:600;background:#8881;border:0;color:inherit;display:flex;justify-content:space-between}
+.m-secbody{display:none;padding:10px}
+.m-sec.open>.m-secbody{display:block}
+.m-sec.open>.m-sechead .arr{transform:rotate(180deg)}
+</style>`);
+root.querySelectorAll(".m-sechead").forEach((b) => (b.onclick = () => b.parentElement.classList.toggle("open")));
