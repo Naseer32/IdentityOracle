@@ -18,21 +18,24 @@ const historyPanel = document.getElementById("history-panel");
 const refreshHistoryBtn = document.getElementById("refresh-history-btn");
 
 function renderVerification(v) {
-  const badge = v.verdict ? "✅ CONFIRMED" : "❌ NOT CONFIRMED";
-  const confClass = `conf-${v.confidence}`;
+  const ok = !!v.verdict;
+  const badge = ok ? "✅ Verified" : "❌ Not verified";
+  const color = ok ? "#16a34a" : "#dc2626";
   return `
-    <div class="verification-card">
-      <div class="verification-header">
-        <span class="badge ${v.verdict ? "badge-true" : "badge-false"}">${badge}</span>
-        <span class="confidence ${confClass}">confidence: ${v.confidence}</span>
+    <details class="verification-card" style="border-left:4px solid ${color};padding:10px 12px">
+      <summary style="cursor:pointer;font-weight:600;color:${color}">
+        ${badge} · ${escapeHtml(v.claimed_name)} <span class="muted small">#${v.id}</span>
+      </summary>
+      <div style="margin-top:8px">
+        <p><strong>${escapeHtml(v.claimed_name)}</strong> — ${escapeHtml(v.claimed_affiliation)}</p>
+        <p class="muted">Confidence: ${escapeHtml(v.confidence)}</p>
+        <p class="muted">Contact: ${escapeHtml(v.contact_channel || "—")}</p>
+        <p class="muted">Sources confirmed: ${v.confirmed_count} / ${v.total_sources}</p>
+        <p class="muted">Evidence: ${escapeHtml(v.evidence_urls)}</p>
+        <p class="reasoning">${escapeHtml(v.reasoning)}</p>
+        <p class="muted small">id #${v.id} · requester ${shortAddr(v.requester)}</p>
       </div>
-      <p><strong>${escapeHtml(v.claimed_name)}</strong> — ${escapeHtml(v.claimed_affiliation)}</p>
-      <p class="muted">Contact: ${escapeHtml(v.contact_channel || "—")}</p>
-      <p class="muted">Sources confirmed: ${v.confirmed_count} / ${v.total_sources}</p>
-      <p class="muted">Evidence: ${escapeHtml(v.evidence_urls)}</p>
-      <p class="reasoning">${escapeHtml(v.reasoning)}</p>
-      <p class="muted small">id #${v.id} · requester ${shortAddr(v.requester)}</p>
-    </div>
+    </details>
   `;
 }
 
