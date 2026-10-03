@@ -25,6 +25,7 @@ const norm = (r) => {
   return r instanceof Map ? Object.fromEntries(r) : r;
 };
 
+const esc = (x) => String(x ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const root = document.createElement("div");
 root.id = "rc";
 root.innerHTML = `<button class="rc-head"><span>My verifications & Recheck</span><span class="arr">▾</span></button>
@@ -69,7 +70,15 @@ async function load() {
       }
       const el = document.createElement("div");
       el.className = "rc-item";
-      el.innerHTML = `<b>ID: ${id}</b><pre>${plain(rec)}</pre><button class="rc-btn">Recheck</button><span class="rc-st"></span>`;
+      el.innerHTML = `
+        <div style="font-size:18px;font-weight:700">${rec && rec.verdict === true && rec.status === "valid" ? "✅ Verified" : "❌ Not verified"}</div>
+        <div style="margin-top:6px"><b>${esc(rec.claimed_name || "-")}</b> — ${esc(rec.claimed_affiliation || "-")}</div>
+        <div>Org: ${esc(rec.org || "—")} ${rec.domain_bound ? "🔗 domain-bound" : "(not domain-bound)"}</div>
+        <div>Confidence: ${esc(rec.confidence || "-")} · Sources: ${esc(rec.confirmed_count)}/${esc(rec.total_sources)}</div>
+        <div>Expires: ${esc(rec.expires_at ? String(rec.expires_at).slice(0, 10) : "-")} · Rechecks: ${esc(rec.recheck_count)}</div>
+        <div style="opacity:.8;font-size:13px;margin-top:4px">${esc(rec.reasoning || "")}</div>
+        <details style="margin-top:6px"><summary>Details</summary><pre>${esc(plain(rec))}</pre></details>
+        <button class="rc-btn" style="margin-top:8px">Sake Dubawa</button><span class="rc-st"></span>`;
       el.querySelector("button").onclick = () => recheck(id, el.querySelector(".rc-st"));
       list.append(el);
     }
