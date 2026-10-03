@@ -51,7 +51,7 @@ const readClient = createClient({ chain });
 
 async function getAccount() {
   const accs = await window.ethereum.request({ method: "eth_accounts" });
-  if (!accs.length) throw new Error("Da farko danna 'Connect Wallet' a saman shafi.");
+  if (!accs.length) throw new Error("Please click 'Connect Wallet' at the top of the page first.");
   return accs[0];
 }
 
@@ -77,7 +77,7 @@ function card(m, isWrite) {
   el.querySelector(".m-head").onclick = () => el.classList.toggle("open");
   el.querySelector(".m-run").onclick = async () => {
     out.style.display = "block";
-    out.textContent = "Ana aiki...";
+    out.textContent = "Working...";
     try {
       const args = parseArgs(m, body);
       if (!isWrite) {
@@ -87,12 +87,12 @@ function card(m, isWrite) {
         const account = await getAccount();
         const wc = createClient({ chain, account });
         const hash = await wc.writeContract({ address: ADDRESS, functionName: m.name, args, value: 0n });
-        out.textContent = "Tx: " + hash + "\nAna jira ACCEPTED...";
+        out.textContent = "Tx: " + hash + "\nWaiting for ACCEPTED...";
         await wc.waitForTransactionReceipt({ hash, status: "ACCEPTED", retries: 120, interval: 3000 });
-        out.textContent = "An yi nasara ✔\nTx: " + hash;
+        out.textContent = "Success ✔\nTx: " + hash;
       }
     } catch (e) {
-      out.textContent = "Kuskure: " + (e.message || e);
+      out.textContent = "Error: " + (e.message || e);
     }
   };
   return el;

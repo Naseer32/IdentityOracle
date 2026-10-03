@@ -37,29 +37,29 @@ root.querySelector(".rc-head").onclick = () => root.classList.toggle("open");
 async function recheck(id, st) {
   try {
     const [account] = await window.ethereum.request({ method: "eth_accounts" });
-    if (!account) throw new Error("Da farko danna 'Connect Wallet' a saman shafi.");
+    if (!account) throw new Error("Please click 'Connect Wallet' at the top of the page first.");
     const wc = createClient({ chain, account });
-    st.textContent = "Ana aikawa...";
+    st.textContent = "Sending...";
     const hash = await wc.writeContract({ address: ADDRESS, functionName: "recheck", args: [toArg(id)], value: 0n });
     st.textContent = "⏳ Pending — Tx: " + hash;
     await wc.waitForTransactionReceipt({ hash, status: "ACCEPTED", retries: 120, interval: 3000 });
-    st.textContent = "✅ Accepted — ana jiran Finalized...\nTx: " + hash;
+    st.textContent = "✅ Accepted — waiting for Finalized...\nTx: " + hash;
     try {
       await wc.waitForTransactionReceipt({ hash, status: "FINALIZED", retries: 200, interval: 5000 });
       st.textContent = "🔒 Finalized\nTx: " + hash;
-    } catch { st.textContent += "\n(Finalized bai tabbata tukuna ba, ka sake dubawa daga baya)"; }
-  } catch (e) { st.textContent = "Kuskure: " + (e.message || e); }
+    } catch { st.textContent += "\n(Not finalized yet, check again later)"; }
+  } catch (e) { st.textContent = "Error: " + (e.message || e); }
 }
 
 async function load() {
   const list = root.querySelector("#rc-list");
-  list.textContent = "Ana lodawa...";
+  list.textContent = "Loading...";
   try {
     const [account] = await window.ethereum.request({ method: "eth_accounts" });
-    if (!account) { list.textContent = "Da farko danna 'Connect Wallet' a saman shafi."; return; }
+    if (!account) { list.textContent = "Please click 'Connect Wallet' at the top of the page first."; return; }
     let items = norm(await readClient.readContract({ address: ADDRESS, functionName: "get_verifications_by_requester", args: [account] }));
     if (!Array.isArray(items)) items = items && typeof items === "object" ? Object.values(items) : [];
-    if (!items.length) { list.textContent = "Babu verification tukuna."; return; }
+    if (!items.length) { list.textContent = "No verifications yet."; return; }
     list.innerHTML = "";
     for (const it of items) {
       let rec = norm(it);
@@ -78,10 +78,10 @@ async function load() {
         <div>Expires: ${esc(rec.expires_at ? String(rec.expires_at).slice(0, 10) : "-")} · Rechecks: ${esc(rec.recheck_count)}</div>
         <div style="opacity:.8;font-size:13px;margin-top:4px">${esc(rec.reasoning || "")}</div>
         <details style="margin-top:6px"><summary>Details</summary><pre>${esc(plain(rec))}</pre></details>
-        <button class="rc-btn" style="margin-top:8px">Sake Dubawa</button><span class="rc-st"></span>`;
+        <button class="rc-btn" style="margin-top:8px">Recheck</button><span class="rc-st"></span>`;
       el.querySelector("button").onclick = () => recheck(id, el.querySelector(".rc-st"));
       list.append(el);
     }
-  } catch (e) { list.textContent = "Kuskure: " + (e.message || e); }
+  } catch (e) { list.textContent = "Error: " + (e.message || e); }
 }
 root.querySelector("#rc-refresh").onclick = load;
