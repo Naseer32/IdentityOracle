@@ -1,3 +1,4 @@
+import "./recheck.js";
 import "./methods.js";
 import {
   connectWallet,
