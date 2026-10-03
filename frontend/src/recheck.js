@@ -71,14 +71,20 @@ async function load() {
       const el = document.createElement("div");
       el.className = "rc-item";
       el.innerHTML = `
-        <div style="font-size:18px;font-weight:700">${rec && rec.verdict === true && rec.status === "valid" ? "✅ Verified" : "❌ Not verified"}</div>
-        <div style="margin-top:6px"><b>${esc(rec.claimed_name || "-")}</b> — ${esc(rec.claimed_affiliation || "-")}</div>
-        <div>Org: ${esc(rec.org || "—")} ${rec.domain_bound ? "🔗 domain-bound" : "(not domain-bound)"}</div>
-        <div>Confidence: ${esc(rec.confidence || "-")} · Sources: ${esc(rec.confirmed_count)}/${esc(rec.total_sources)}</div>
-        <div>Expires: ${esc(rec.expires_at ? String(rec.expires_at).slice(0, 10) : "-")} · Rechecks: ${esc(rec.recheck_count)}</div>
-        <div style="opacity:.8;font-size:13px;margin-top:4px">${esc(rec.reasoning || "")}</div>
-        <details style="margin-top:6px"><summary>Details</summary><pre>${esc(plain(rec))}</pre></details>
-        <button class="rc-btn" style="margin-top:8px">Recheck</button><span class="rc-st"></span>`;
+        <details>
+          <summary style="cursor:pointer;font-weight:600;font-size:16px;color:${rec && rec.verdict === true && rec.status === "valid" ? "#16a34a" : "#dc2626"}">
+            ${rec && rec.verdict === true && rec.status === "valid" ? "✅ Verified" : "❌ Not verified"} · ${esc(rec.claimed_name || "-")} <span style="opacity:.6;font-size:12px">#${esc(id)}</span>
+          </summary>
+          <div style="margin-top:8px">
+            <div><b>${esc(rec.claimed_name || "-")}</b> — ${esc(rec.claimed_affiliation || "-")}</div>
+            <div>Org: ${esc(rec.org || "—")} ${rec.domain_bound ? "🔗 domain-bound" : "(not domain-bound)"}</div>
+            <div>Confidence: ${esc(rec.confidence || "-")} · Sources: ${esc(rec.confirmed_count)}/${esc(rec.total_sources)}</div>
+            <div>Expires: ${esc(rec.expires_at ? String(rec.expires_at).slice(0, 10) : "-")} · Rechecks: ${esc(rec.recheck_count)}</div>
+            <div style="opacity:.8;font-size:13px;margin-top:4px">${esc(rec.reasoning || "")}</div>
+            <details style="margin-top:6px"><summary>Details</summary><pre>${esc(plain(rec))}</pre></details>
+            <button class="rc-btn" style="margin-top:8px">Recheck</button><span class="rc-st"></span>
+          </div>
+        </details>`;
       el.querySelector("button").onclick = () => recheck(id, el.querySelector(".rc-st"));
       list.append(el);
     }
